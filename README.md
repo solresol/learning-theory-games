@@ -9,4 +9,4 @@ computer and open it in a web browser.
 
 What does it mean to **shatter** a dataset? This games teaches the
 concept behind
-[vapnik-chervonenkis-game.html](Vapnik-Chervonenkis dimension)
+(Vapnik-Chervonenkis dimension)[vapnik-chervonenkis-game.html]
