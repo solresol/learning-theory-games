@@ -1,4 +1,4 @@
-# learning-theory-games
+# Learning Theory Games
 
 Interactive games to teaching learning theory
 
@@ -9,4 +9,4 @@ computer and open it in a web browser.
 
 What does it mean to **shatter** a dataset? This games teaches the
 concept behind
-(Vapnik-Chervonenkis dimension)[vapnik-chervonenkis-game.html]
+[Vapnik-Chervonenkis dimension](vapnik-chervonenkis-game.html)
