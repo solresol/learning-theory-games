@@ -10,3 +10,8 @@ computer and open it in a web browser.
 What does it mean to **shatter** a dataset? This games teaches the
 concept behind
 [Vapnik-Chervonenkis dimension](vapnik-chervonenkis-game.html)
+
+## rademacher-calculator.html
+
+What is Rademacher complexity? Play around with a few different degree
+polynomials and some random data and find out.

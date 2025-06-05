@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rademacher Complexity Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4fc3f7;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 968px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .card h2 {
+            color: #4fc3f7;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        label {
+            display: block;
+            color: #b0b0b0;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .value {
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+        
+        button {
+            background: #4fc3f7;
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #29b6f6;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .results {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #3a3a3a;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            color: #888;
+        }
+        
+        .result-value {
+            color: #4fc3f7;
+            font-weight: bold;
+            font-family: monospace;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+        
+        .explanation {
+            background: #1e3a5f;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4fc3f7;
+            margin-top: 20px;
+        }
+        
+        .explanation h3 {
+            color: #4fc3f7;
+            margin-bottom: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #4fc3f7;
+            font-size: 1.2em;
+            padding: 20px;
+        }
+        
+        .progress-bar {
+            background: #2a2a2a;
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: #4fc3f7;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        code {
+            background: #2a2a2a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #4fc3f7;
+        }
+        
+        .highlight {
+            background: #2a3f5f;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .formula {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 20px 0;
+            color: #4fc3f7;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Rademacher Complexity Calculator</h1>
+        <p class="subtitle">Numerical analysis of function class complexity and generalization</p>
+        
+        <div class="grid">
+            <div class="card">
+                <h2>Configuration</h2>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Number of Samples: <span class="value" id="nSamplesValue">50</span></label>
+                        <input type="range" id="nSamples" min="20" max="200" value="50" step="10">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Number of Rademacher Samples: <span class="value" id="rSamplesValue">100</span></label>
+                        <input type="range" id="rSamples" min="50" max="500" value="100" step="50">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Max Polynomial Degree: <span class="value" id="maxDegreeValue">10</span></label>
+                        <input type="range" id="maxDegree" min="5" max="20" value="10">
+                    </div>
+                    
+                    <button id="calculateBtn">Calculate Complexities</button>
+                </div>
+                
+                <div class="results" id="results">
+                    <div class="loading">Ready to calculate...</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Complexity vs Model Capacity</h2>
+                <div class="chart-container">
+                    <canvas id="complexityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h2>True vs Random Labels Fitting</h2>
+                <div class="chart-container">
+                    <canvas id="fittingChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Understanding Rademacher Complexity</h2>
+                <div class="explanation">
+                    <h3>What is Rademacher Complexity?</h3>
+                    <p>Rademacher complexity measures how well a function class can correlate with random noise:</p>
+                    
+                    <div class="formula">
+                        R̂(F) = E<sub>σ</sub>[sup<sub>f∈F</sub> (1/n)Σ<sub>i</sub> σ<sub>i</sub>f(x<sub>i</sub>)]
+                    </div>
+                    
+                    <div class="highlight">
+                        <strong>Breaking down the formula:</strong>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li><strong>R̂(F)</strong>: The empirical Rademacher complexity of function class F</li>
+                            <li><strong>F</strong>: A set of functions (e.g., all linear functions, all degree-3 polynomials)</li>
+                            <li><strong>E<sub>σ</sub></strong>: Expected value over random σ variables</li>
+                            <li><strong>σ<sub>i</sub></strong>: Random ±1 labels (Rademacher random variables)</li>
+                            <li><strong>sup<sub>f∈F</sub></strong>: Supremum (maximum) over all functions in class F</li>
+                            <li><strong>n</strong>: Number of data points</li>
+                            <li><strong>f(x<sub>i</sub>)</strong>: Function f evaluated at data point x<sub>i</sub></li>
+                            <li><strong>Σ<sub>i</sub></strong>: Sum over all data points i = 1 to n</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="highlight" style="margin-top: 15px;">
+                        <strong>In plain English:</strong> For each random labeling, find the function in F that best correlates 
+                        with those random labels. Average this over many random labelings. The result tells you how well 
+                        the function class can "memorize" pure noise.
+                    </div>
+                    
+                    <div class="highlight" style="margin-top: 15px;">
+                        <strong>Key Insights:</strong>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>High complexity (close to 1) → can fit random patterns → risk of overfitting</li>
+                            <li>Low complexity (close to 0) → can't fit noise → better generalization</li>
+                            <li>Complexity depends on both the function class F and the data distribution</li>
+                        </ul>
+                    </div>
+                    
+                    <h3 style="margin-top: 20px;">Why It Matters</h3>
+                    <p>Rademacher complexity provides a data-dependent measure of model capacity. Unlike VC dimension, it considers the actual data distribution, making it more practical for understanding generalization bounds.</p>
+                    
+                    <div class="highlight" style="margin-top: 15px;">
+                        <strong>Simple Example:</strong><br>
+                        Imagine you have 10 data points and you randomly assign each one a label of +1 or -1 by flipping a coin. 
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>A <code>constant function</code> (always outputs same value) will correlate poorly with random labels</li>
+                            <li>A <code>degree-10 polynomial</code> can perfectly fit any 10 points, even random ones!</li>
+                            <li>The polynomial has higher Rademacher complexity = more prone to overfitting</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class RademacherCalculator {
+            constructor() {
+                this.setupEventListeners();
+                this.complexityChart = null;
+                this.fittingChart = null;
+                this.initCharts();
+            }
+            
+            setupEventListeners() {
+                // Update value displays
+                document.getElementById('nSamples').addEventListener('input', (e) => {
+                    document.getElementById('nSamplesValue').textContent = e.target.value;
+                });
+                
+                document.getElementById('rSamples').addEventListener('input', (e) => {
+                    document.getElementById('rSamplesValue').textContent = e.target.value;
+                });
+                
+                document.getElementById('maxDegree').addEventListener('input', (e) => {
+                    document.getElementById('maxDegreeValue').textContent = e.target.value;
+                });
+                
+                // Calculate button
+                document.getElementById('calculateBtn').addEventListener('click', () => {
+                    this.calculate();
+                });
+            }
+            
+            initCharts() {
+                // Complexity vs Degree chart
+                const ctx1 = document.getElementById('complexityChart').getContext('2d');
+                this.complexityChart = new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Empirical Rademacher Complexity',
+                            data: [],
+                            borderColor: '#4fc3f7',
+                            backgroundColor: 'rgba(79, 195, 247, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.1,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#e0e0e0' }
+                            },
+                            tooltip: {
+                                backgroundColor: '#2a2a2a',
+                                titleColor: '#4fc3f7',
+                                bodyColor: '#e0e0e0'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Polynomial Degree',
+                                    color: '#e0e0e0'
+                                },
+                                ticks: { color: '#888' },
+                                grid: { color: '#333' }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Rademacher Complexity',
+                                    color: '#e0e0e0'
+                                },
+                                ticks: { color: '#888' },
+                                grid: { color: '#333' }
+                            }
+                        }
+                    }
+                });
+                
+                // True vs Random labels chart
+                const ctx2 = document.getElementById('fittingChart').getContext('2d');
+                this.fittingChart = new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'R² on True Labels',
+                                data: [],
+                                backgroundColor: '#4fc3f7',
+                                borderColor: '#29b6f6',
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'R² on Random Labels',
+                                data: [],
+                                backgroundColor: '#ff5252',
+                                borderColor: '#ff1744',
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#e0e0e0' }
+                            },
+                            tooltip: {
+                                backgroundColor: '#2a2a2a',
+                                titleColor: '#4fc3f7',
+                                bodyColor: '#e0e0e0'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Polynomial Degree',
+                                    color: '#e0e0e0'
+                                },
+                                ticks: { color: '#888' },
+                                grid: { color: '#333' }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'R² Score',
+                                    color: '#e0e0e0'
+                                },
+                                ticks: { color: '#888' },
+                                grid: { color: '#333' },
+                                min: 0,
+                                max: 1
+                            }
+                        }
+                    }
+                });
+            }
+            
+            async calculate() {
+                const nSamples = parseInt(document.getElementById('nSamples').value);
+                const rSamples = parseInt(document.getElementById('rSamples').value);
+                const maxDegree = parseInt(document.getElementById('maxDegree').value);
+                
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '<div class="loading">Calculating...<div class="progress-bar"><div class="progress-fill"></div></div></div>';
+                
+                const progressBar = resultsDiv.querySelector('.progress-fill');
+                
+                // Generate data
+                const X = this.generateData(nSamples);
+                
+                // Calculate complexities for different function classes
+                const results = [];
+                const complexityByDegree = [];
+                const fittingComparison = [];
+                
+                // Linear function
+                await this.delay(100);
+                const rcLinear = this.empiricalRademacherComplexity(X, this.linearFunctionClass, rSamples);
+                results.push({ name: 'Linear Functions', value: rcLinear });
+                progressBar.style.width = '20%';
+                
+                // Polynomial functions
+                for (let degree = 1; degree <= maxDegree; degree++) {
+                    await this.delay(50);
+                    const rcPoly = this.empiricalRademacherComplexity(
+                        X, 
+                        this.polynomialFunctionClass(degree), 
+                        Math.min(rSamples, 50) // Fewer samples for speed
+                    );
+                    
+                    if (degree <= 5 || degree % 2 === 0) {
+                        results.push({ name: `Polynomial (degree ${degree})`, value: rcPoly });
+                    }
+                    
+                    complexityByDegree.push({ degree, complexity: rcPoly });
+                    progressBar.style.width = `${20 + (degree / maxDegree) * 40}%`;
+                }
+                
+                // Threshold functions
+                for (const nThresh of [2, 5, 10, 20]) {
+                    await this.delay(50);
+                    const rcThresh = this.empiricalRademacherComplexity(
+                        X, 
+                        this.thresholdFunctionClass(nThresh), 
+                        Math.min(rSamples, 50)
+                    );
+                    results.push({ name: `Threshold Functions (${nThresh} thresholds)`, value: rcThresh });
+                }
+                progressBar.style.width = '80%';
+                
+                // True vs Random labels comparison
+                const trueY = X.map(x => Math.sin(3 * x[0]) + 0.1 * (Math.random() - 0.5));
+                const randomY = Array(nSamples).fill(0).map(() => Math.random() > 0.5 ? 1 : -1);
+                
+                for (const degree of [1, 3, 5, 10]) {
+                    if (degree <= maxDegree) {
+                        const r2True = this.fitAndScore(X, trueY, degree);
+                        const r2Random = this.fitAndScore(X, randomY, degree);
+                        fittingComparison.push({ degree, r2True, r2Random });
+                    }
+                }
+                progressBar.style.width = '100%';
+                
+                // Display results
+                this.displayResults(results);
+                this.updateCharts(complexityByDegree, fittingComparison);
+            }
+            
+            generateData(n) {
+                const X = [];
+                for (let i = 0; i < n; i++) {
+                    X.push([Math.random() * 2 - 1]); // x in [-1, 1]
+                }
+                return X;
+            }
+            
+            empiricalRademacherComplexity(X, functionClass, nSamples) {
+                const n = X.length;
+                const complexities = [];
+                
+                for (let i = 0; i < nSamples; i++) {
+                    // Generate random Rademacher variables
+                    const sigma = Array(n).fill(0).map(() => Math.random() > 0.5 ? 1 : -1);
+                    
+                    // Fit function to random labels
+                    const predictor = functionClass(X, sigma);
+                    
+                    // Compute correlation with random labels
+                    let sum = 0;
+                    for (let j = 0; j < n; j++) {
+                        sum += sigma[j] * predictor(X[j]);
+                    }
+                    complexities.push(sum / n);
+                }
+                
+                return complexities.reduce((a, b) => a + b, 0) / complexities.length;
+            }
+            
+            linearFunctionClass(X, y) {
+                // Simple linear regression
+                const n = X.length;
+                let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+                
+                for (let i = 0; i < n; i++) {
+                    sumX += X[i][0];
+                    sumY += y[i];
+                    sumXY += X[i][0] * y[i];
+                    sumXX += X[i][0] * X[i][0];
+                }
+                
+                const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                
+                return (x) => slope * x[0] + intercept;
+            }
+            
+            polynomialFunctionClass(degree) {
+                return (X, y) => {
+                    // Create polynomial features
+                    const XPoly = X.map(x => {
+                        const features = [];
+                        for (let d = 0; d <= degree; d++) {
+                            features.push(Math.pow(x[0], d));
+                        }
+                        return features;
+                    });
+                    
+                    // Solve using normal equations
+                    const coeffs = this.leastSquares(XPoly, y);
+                    
+                    return (x) => {
+                        let result = 0;
+                        for (let d = 0; d <= degree; d++) {
+                            result += coeffs[d] * Math.pow(x[0], d);
+                        }
+                        return result;
+                    };
+                };
+            }
+            
+            thresholdFunctionClass(nThresholds) {
+                return (X, y) => {
+                    const xFlat = X.map(x => x[0]);
+                    const xMin = Math.min(...xFlat);
+                    const xMax = Math.max(...xFlat);
+                    const thresholds = [];
+                    
+                    for (let i = 0; i < nThresholds; i++) {
+                        thresholds.push(xMin + (xMax - xMin) * i / (nThresholds - 1));
+                    }
+                    
+                    // Find best threshold
+                    let bestError = Infinity;
+                    let bestThreshold = thresholds[0];
+                    let bestSign = 1;
+                    
+                    for (const t of thresholds) {
+                        for (const sign of [1, -1]) {
+                            let error = 0;
+                            for (let i = 0; i < X.length; i++) {
+                                const pred = sign * (xFlat[i] > t ? 1 : -1);
+                                error += Math.pow(pred - y[i], 2);
+                            }
+                            if (error < bestError) {
+                                bestError = error;
+                                bestThreshold = t;
+                                bestSign = sign;
+                            }
+                        }
+                    }
+                    
+                    return (x) => bestSign * (x[0] > bestThreshold ? 1 : -1);
+                };
+            }
+            
+            leastSquares(X, y) {
+                const n = X.length;
+                const m = X[0].length;
+                
+                // X^T * X
+                const XtX = [];
+                for (let i = 0; i < m; i++) {
+                    XtX[i] = [];
+                    for (let j = 0; j < m; j++) {
+                        let sum = 0;
+                        for (let k = 0; k < n; k++) {
+                            sum += X[k][i] * X[k][j];
+                        }
+                        XtX[i][j] = sum;
+                    }
+                }
+                
+                // X^T * y
+                const Xty = [];
+                for (let i = 0; i < m; i++) {
+                    let sum = 0;
+                    for (let k = 0; k < n; k++) {
+                        sum += X[k][i] * y[k];
+                    }
+                    Xty[i] = sum;
+                }
+                
+                // Add regularization to avoid singularity
+                const lambda = 1e-6;
+                for (let i = 0; i < m; i++) {
+                    XtX[i][i] += lambda;
+                }
+                
+                // Solve using Gaussian elimination
+                return this.gaussianElimination(XtX, Xty);
+            }
+            
+            gaussianElimination(A, b) {
+                const n = A.length;
+                const aug = A.map((row, i) => [...row, b[i]]);
+                
+                // Forward elimination
+                for (let i = 0; i < n; i++) {
+                    // Partial pivoting
+                    let maxRow = i;
+                    for (let k = i + 1; k < n; k++) {
+                        if (Math.abs(aug[k][i]) > Math.abs(aug[maxRow][i])) {
+                            maxRow = k;
+                        }
+                    }
+                    [aug[i], aug[maxRow]] = [aug[maxRow], aug[i]];
+                    
+                    // Skip if diagonal is zero
+                    if (Math.abs(aug[i][i]) < 1e-10) continue;
+                    
+                    // Eliminate column
+                    for (let k = i + 1; k < n; k++) {
+                        const c = aug[k][i] / aug[i][i];
+                        for (let j = i; j < n + 1; j++) {
+                            aug[k][j] -= c * aug[i][j];
+                        }
+                    }
+                }
+                
+                // Back substitution
+                const x = new Array(n);
+                for (let i = n - 1; i >= 0; i--) {
+                    x[i] = aug[i][n];
+                    for (let j = i + 1; j < n; j++) {
+                        x[i] -= aug[i][j] * x[j];
+                    }
+                    x[i] /= aug[i][i];
+                }
+                
+                return x;
+            }
+            
+            fitAndScore(X, y, degree) {
+                const predictor = this.polynomialFunctionClass(degree)(X, y);
+                
+                // Calculate R²
+                const yMean = y.reduce((a, b) => a + b, 0) / y.length;
+                let ssRes = 0, ssTot = 0;
+                
+                for (let i = 0; i < X.length; i++) {
+                    const pred = predictor(X[i]);
+                    ssRes += Math.pow(y[i] - pred, 2);
+                    ssTot += Math.pow(y[i] - yMean, 2);
+                }
+                
+                return Math.max(0, 1 - ssRes / ssTot);
+            }
+            
+            displayResults(results) {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '';
+                
+                results.forEach(result => {
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
+                    item.innerHTML = `
+                        <span class="result-label">${result.name}</span>
+                        <span class="result-value">${result.value.toFixed(4)}</span>
+                    `;
+                    resultsDiv.appendChild(item);
+                });
+            }
+            
+            updateCharts(complexityData, fittingData) {
+                // Update complexity chart
+                this.complexityChart.data.labels = complexityData.map(d => d.degree);
+                this.complexityChart.data.datasets[0].data = complexityData.map(d => d.complexity);
+                this.complexityChart.update();
+                
+                // Update fitting chart
+                this.fittingChart.data.labels = fittingData.map(d => `Degree ${d.degree}`);
+                this.fittingChart.data.datasets[0].data = fittingData.map(d => d.r2True);
+                this.fittingChart.data.datasets[1].data = fittingData.map(d => d.r2Random);
+                this.fittingChart.update();
+            }
+            
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+        
+        // Initialize calculator
+        const calculator = new RademacherCalculator();
+    </script>
+</body>
+</html>
