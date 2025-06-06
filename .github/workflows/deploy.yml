@@ -24,9 +24,10 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 700 ~/.ssh
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan merah.cassia.ifost.org.au >> ~/.ssh/known_hosts
 
       - name: Deploy HTML files
         run: |
-          scp *.html merah.cassia.ifost.org.au:/var/www/vhosts/learning-theory.arithmetic.guru/htdocs/
+          scp -i ~/.ssh/id_rsa *.html merah.cassia.ifost.org.au:/var/www/vhosts/learning-theory.arithmetic.guru/htdocs/
