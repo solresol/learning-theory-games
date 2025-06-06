@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Build index.html
+        run: pandoc README.md -o index.html
+
+      - name: Setup SSH
+        env:
+          SSH_KEY: ${{ env.NUMBER_TARGET_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan merah.cassia.ifost.org.au >> ~/.ssh/known_hosts
+
+      - name: Deploy HTML files
+        run: |
+          scp *.html merah.cassia.ifost.org.au:/var/www/vhosts/learning-theory.arithmetic.guru/htdocs/
