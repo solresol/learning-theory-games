@@ -27,7 +27,18 @@ jobs:
           chmod 700 ~/.ssh
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan merah.cassia.ifost.org.au >> ~/.ssh/known_hosts
+
+      - name: Debug SSH setup
+        env:
+          SSH_KEY: ${{ env.NUMBER_TARGET_SSH_KEY }}
+        run: |
           head -n 1 ~/.ssh/id_ed25519
+
+      - name: Debug SSH setup 2
+        env:
+          SSH_KEY: ${{ env.NUMBER_TARGET_SSH_KEY }}
+        run: |
+          echo "This is the key:\n$SSH_KEY\nThe end"
 
       - name: Deploy HTML files
         run: |
