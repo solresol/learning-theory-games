@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overfitting Explorer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            font-size: 1.2em;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .control-group label {
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            cursor: pointer;
+            border: none;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .chart-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-section h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #4ecdc4;
+        }
+        
+        .metrics {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        
+        .explanation {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            line-height: 1.6;
+        }
+        
+        .warning {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        
+        .good {
+            background: rgba(78, 205, 196, 0.2);
+            border: 1px solid rgba(78, 205, 196, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Overfitting Explorer</h1>
+        <p class="subtitle">Interactive exploration of polynomial fitting, bias-variance tradeoff, and overfitting</p>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="degree">Polynomial Degree: <span id="degreeValue">3</span></label>
+                <input type="range" id="degree" min="1" max="15" value="3">
+            </div>
+            
+            <div class="control-group">
+                <label for="dataSize">Training Data Size: <span id="dataSizeValue">20</span></label>
+                <input type="range" id="dataSize" min="5" max="100" value="20">
+            </div>
+            
+            <div class="control-group">
+                <label for="noiseLevel">Noise Level: <span id="noiseLevelValue">0.3</span></label>
+                <input type="range" id="noiseLevel" min="0" max="1" step="0.1" value="0.3">
+            </div>
+            
+            <div class="control-group">
+                <label for="testSize">Test Data Size: <span id="testSizeValue">50</span></label>
+                <input type="range" id="testSize" min="20" max="200" value="50">
+            </div>
+            
+            <div class="control-group" style="grid-column: span 2;">
+                <button onclick="generateNewData()">Generate New Data</button>
+                <button onclick="runBiasVarianceAnalysis()">Run Bias-Variance Analysis</button>
+            </div>
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-section">
+                <h3>Training Data & Polynomial Fit</h3>
+                <canvas id="fittingChart" width="400" height="300"></canvas>
+            </div>
+            
+            <div class="chart-section">
+                <h3>Learning Curves</h3>
+                <canvas id="learningChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-label">Training Error</div>
+                <div class="metric-value" id="trainError">--</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Test Error</div>
+                <div class="metric-value" id="testError">--</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Bias²</div>
+                <div class="metric-value" id="biasSquared">--</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Variance</div>
+                <div class="metric-value" id="variance">--</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Irreducible Error</div>
+                <div class="metric-value" id="irreducibleError">--</div>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <h3>Understanding Overfitting</h3>
+            <p><strong>Overfitting</strong> occurs when a model learns the training data too well, including its noise and random fluctuations. This leads to poor generalization on new, unseen data.</p>
+            
+            <div id="overfittingStatus"></div>
+            
+            <h4>Key Concepts:</h4>
+            <ul>
+                <li><strong>Bias:</strong> Error from overly simplistic assumptions (underfitting)</li>
+                <li><strong>Variance:</strong> Error from sensitivity to small fluctuations in training data (overfitting)</li>
+                <li><strong>Bias-Variance Tradeoff:</strong> As model complexity increases, bias decreases but variance increases</li>
+                <li><strong>Sweet Spot:</strong> The optimal complexity minimizes total error = bias² + variance + irreducible error</li>
+            </ul>
+            
+            <h4>Experiment Guidelines:</h4>
+            <ul>
+                <li>Try different polynomial degrees (1-15) and observe the tradeoff</li>
+                <li>Increase noise to see how it affects the optimal complexity</li>
+                <li>Vary training set size to understand sample complexity</li>
+                <li>Run bias-variance analysis to decompose the total error</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let fittingChart, learningChart;
+        let trainingData = [];
+        let testData = [];
+        let trueFunction = (x) => 0.5 * x * x - 0.3 * x + 0.1; // True underlying function
+        
+        // Initialize charts
+        function initCharts() {
+            const fittingCtx = document.getElementById('fittingChart').getContext('2d');
+            const learningCtx = document.getElementById('learningChart').getContext('2d');
+            
+            fittingChart = new Chart(fittingCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: { display: true, text: 'x', color: 'white' },
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'y', color: 'white' },
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+            
+            learningChart = new Chart(learningCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Training Set Size', color: 'white' },
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Error', color: 'white' },
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Generate random data
+        function generateData(size, noiseLevel) {
+            const data = [];
+            for (let i = 0; i < size; i++) {
+                const x = Math.random() * 2 - 1; // Random x between -1 and 1
+                const trueY = trueFunction(x);
+                const noise = (Math.random() - 0.5) * 2 * noiseLevel;
+                data.push({ x: x, y: trueY + noise, trueY: trueY });
+            }
+            return data.sort((a, b) => a.x - b.x);
+        }
+        
+        // Polynomial fitting using least squares
+        function fitPolynomial(data, degree) {
+            const n = data.length;
+            const X = [];
+            const y = [];
+            
+            // Create design matrix and target vector
+            for (let i = 0; i < n; i++) {
+                const row = [];
+                for (let j = 0; j <= degree; j++) {
+                    row.push(Math.pow(data[i].x, j));
+                }
+                X.push(row);
+                y.push([data[i].y]);
+            }
+            
+            // Solve normal equations: (X^T X) β = X^T y
+            const XT = transpose(X);
+            const XTX = multiply(XT, X);
+            const XTy = multiply(XT, y);
+            
+            try {
+                const XTX_inv = invert(XTX);
+                const coefficients = multiply(XTX_inv, XTy);
+                return coefficients.map(row => row[0]);
+            } catch (e) {
+                // Fallback for singular matrices
+                return new Array(degree + 1).fill(0);
+            }
+        }
+        
+        // Matrix operations
+        function transpose(matrix) {
+            return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex]));
+        }
+        
+        function multiply(a, b) {
+            const result = [];
+            for (let i = 0; i < a.length; i++) {
+                result[i] = [];
+                for (let j = 0; j < b[0].length; j++) {
+                    let sum = 0;
+                    for (let k = 0; k < b.length; k++) {
+                        sum += a[i][k] * b[k][j];
+                    }
+                    result[i][j] = sum;
+                }
+            }
+            return result;
+        }
+        
+        function invert(matrix) {
+            const n = matrix.length;
+            const identity = [];
+            const augmented = [];
+            
+            // Create augmented matrix [A|I]
+            for (let i = 0; i < n; i++) {
+                identity[i] = new Array(n).fill(0);
+                identity[i][i] = 1;
+                augmented[i] = [...matrix[i], ...identity[i]];
+            }
+            
+            // Gaussian elimination
+            for (let i = 0; i < n; i++) {
+                // Find pivot
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
+                        maxRow = k;
+                    }
+                }
+                [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
+                
+                // Check for singular matrix
+                if (Math.abs(augmented[i][i]) < 1e-10) {
+                    throw new Error('Matrix is singular');
+                }
+                
+                // Scale pivot row
+                const pivot = augmented[i][i];
+                for (let j = 0; j < 2 * n; j++) {
+                    augmented[i][j] /= pivot;
+                }
+                
+                // Eliminate column
+                for (let k = 0; k < n; k++) {
+                    if (k !== i) {
+                        const factor = augmented[k][i];
+                        for (let j = 0; j < 2 * n; j++) {
+                            augmented[k][j] -= factor * augmented[i][j];
+                        }
+                    }
+                }
+            }
+            
+            // Extract inverse matrix
+            const inverse = [];
+            for (let i = 0; i < n; i++) {
+                inverse[i] = augmented[i].slice(n);
+            }
+            
+            return inverse;
+        }
+        
+        // Evaluate polynomial
+        function evaluatePolynomial(coefficients, x) {
+            let result = 0;
+            for (let i = 0; i < coefficients.length; i++) {
+                result += coefficients[i] * Math.pow(x, i);
+            }
+            return result;
+        }
+        
+        // Calculate mean squared error
+        function calculateMSE(data, coefficients) {
+            let mse = 0;
+            for (const point of data) {
+                const prediction = evaluatePolynomial(coefficients, point.x);
+                mse += Math.pow(point.y - prediction, 2);
+            }
+            return mse / data.length;
+        }
+        
+        // Update fitting chart
+        function updateFittingChart() {
+            const degree = parseInt(document.getElementById('degree').value);
+            const coefficients = fitPolynomial(trainingData, degree);
+            
+            // Generate polynomial curve
+            const curvePoints = [];
+            for (let x = -1; x <= 1; x += 0.02) {
+                curvePoints.push({
+                    x: x,
+                    y: evaluatePolynomial(coefficients, x)
+                });
+            }
+            
+            // Generate true function curve
+            const trueCurvePoints = [];
+            for (let x = -1; x <= 1; x += 0.02) {
+                trueCurvePoints.push({
+                    x: x,
+                    y: trueFunction(x)
+                });
+            }
+            
+            fittingChart.data.datasets = [
+                {
+                    label: 'Training Data',
+                    data: trainingData,
+                    backgroundColor: 'rgba(255, 107, 107, 0.8)',
+                    borderColor: 'rgba(255, 107, 107, 1)',
+                    showLine: false,
+                    pointRadius: 5
+                },
+                {
+                    label: 'Test Data',
+                    data: testData,
+                    backgroundColor: 'rgba(78, 205, 196, 0.6)',
+                    borderColor: 'rgba(78, 205, 196, 1)',
+                    showLine: false,
+                    pointRadius: 3
+                },
+                {
+                    label: `Polynomial Fit (degree ${degree})`,
+                    data: curvePoints,
+                    backgroundColor: 'transparent',
+                    borderColor: 'rgba(255, 206, 84, 1)',
+                    borderWidth: 3,
+                    showLine: true,
+                    pointRadius: 0
+                },
+                {
+                    label: 'True Function',
+                    data: trueCurvePoints,
+                    backgroundColor: 'transparent',
+                    borderColor: 'rgba(255, 255, 255, 0.8)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    showLine: true,
+                    pointRadius: 0
+                }
+            ];
+            
+            fittingChart.update();
+            
+            // Update metrics
+            const trainError = calculateMSE(trainingData, coefficients);
+            const testError = calculateMSE(testData, coefficients);
+            
+            document.getElementById('trainError').textContent = trainError.toFixed(4);
+            document.getElementById('testError').textContent = testError.toFixed(4);
+            
+            updateOverfittingStatus(trainError, testError, degree);
+        }
+        
+        // Update overfitting status
+        function updateOverfittingStatus(trainError, testError, degree) {
+            const statusDiv = document.getElementById('overfittingStatus');
+            const errorGap = testError - trainError;
+            
+            if (errorGap > 0.1 && degree > 5) {
+                statusDiv.innerHTML = '<div class="warning"><strong>⚠️ Overfitting Detected!</strong><br>Test error is much higher than training error. The model is too complex for the available data.</div>';
+            } else if (trainError > 0.3 && degree < 3) {
+                statusDiv.innerHTML = '<div class="warning"><strong>📈 Underfitting Detected!</strong><br>Both training and test errors are high. The model is too simple to capture the underlying pattern.</div>';
+            } else {
+                statusDiv.innerHTML = '<div class="good"><strong>✅ Good Fit!</strong><br>The model appears to be well-balanced between bias and variance.</div>';
+            }
+        }
+        
+        // Generate learning curves
+        function generateLearningCurves() {
+            const degree = parseInt(document.getElementById('degree').value);
+            const maxSize = parseInt(document.getElementById('dataSize').value);
+            const sizes = [];
+            const trainErrors = [];
+            const testErrors = [];
+            
+            for (let size = 5; size <= maxSize; size += Math.max(1, Math.floor(maxSize / 20))) {
+                const subset = trainingData.slice(0, size);
+                const coefficients = fitPolynomial(subset, degree);
+                
+                sizes.push(size);
+                trainErrors.push(calculateMSE(subset, coefficients));
+                testErrors.push(calculateMSE(testData, coefficients));
+            }
+            
+            learningChart.data.labels = sizes;
+            learningChart.data.datasets = [
+                {
+                    label: 'Training Error',
+                    data: trainErrors,
+                    borderColor: 'rgba(255, 107, 107, 1)',
+                    backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                    fill: false
+                },
+                {
+                    label: 'Test Error',
+                    data: testErrors,
+                    borderColor: 'rgba(78, 205, 196, 1)',
+                    backgroundColor: 'rgba(78, 205, 196, 0.2)',
+                    fill: false
+                }
+            ];
+            
+            learningChart.update();
+        }
+        
+        // Run bias-variance analysis
+        function runBiasVarianceAnalysis() {
+            const degree = parseInt(document.getElementById('degree').value);
+            const noiseLevel = parseFloat(document.getElementById('noiseLevel').value);
+            const numTrials = 50;
+            
+            // Generate multiple datasets and fit models
+            const predictions = [];
+            const testPoints = [];
+            
+            // Create fixed test points
+            for (let x = -1; x <= 1; x += 0.1) {
+                testPoints.push({ x: x, trueY: trueFunction(x) });
+            }
+            
+            // Run multiple trials
+            for (let trial = 0; trial < numTrials; trial++) {
+                const trialData = generateData(parseInt(document.getElementById('dataSize').value), noiseLevel);
+                const coefficients = fitPolynomial(trialData, degree);
+                
+                const trialPredictions = testPoints.map(point => 
+                    evaluatePolynomial(coefficients, point.x)
+                );
+                predictions.push(trialPredictions);
+            }
+            
+            // Calculate bias and variance
+            let totalBias = 0;
+            let totalVariance = 0;
+            
+            for (let i = 0; i < testPoints.length; i++) {
+                const trueValue = testPoints[i].trueY;
+                const predictionValues = predictions.map(pred => pred[i]);
+                const meanPrediction = predictionValues.reduce((a, b) => a + b, 0) / numTrials;
+                
+                // Bias squared
+                const bias = meanPrediction - trueValue;
+                totalBias += bias * bias;
+                
+                // Variance
+                const variance = predictionValues.reduce((sum, pred) => sum + Math.pow(pred - meanPrediction, 2), 0) / numTrials;
+                totalVariance += variance;
+            }
+            
+            const avgBias = totalBias / testPoints.length;
+            const avgVariance = totalVariance / testPoints.length;
+            const irreducibleError = noiseLevel * noiseLevel;
+            
+            document.getElementById('biasSquared').textContent = avgBias.toFixed(4);
+            document.getElementById('variance').textContent = avgVariance.toFixed(4);
+            document.getElementById('irreducibleError').textContent = irreducibleError.toFixed(4);
+        }
+        
+        // Generate new data
+        function generateNewData() {
+            const dataSize = parseInt(document.getElementById('dataSize').value);
+            const testSize = parseInt(document.getElementById('testSize').value);
+            const noiseLevel = parseFloat(document.getElementById('noiseLevel').value);
+            
+            trainingData = generateData(dataSize, noiseLevel);
+            testData = generateData(testSize, noiseLevel);
+            
+            updateFittingChart();
+            generateLearningCurves();
+        }
+        
+        // Event listeners
+        document.getElementById('degree').addEventListener('input', function() {
+            document.getElementById('degreeValue').textContent = this.value;
+            updateFittingChart();
+            generateLearningCurves();
+        });
+        
+        document.getElementById('dataSize').addEventListener('input', function() {
+            document.getElementById('dataSizeValue').textContent = this.value;
+            generateNewData();
+        });
+        
+        document.getElementById('noiseLevel').addEventListener('input', function() {
+            document.getElementById('noiseLevelValue').textContent = this.value;
+            generateNewData();
+        });
+        
+        document.getElementById('testSize').addEventListener('input', function() {
+            document.getElementById('testSizeValue').textContent = this.value;
+            generateNewData();
+        });
+        
+        // Initialize
+        window.addEventListener('load', function() {
+            initCharts();
+            generateNewData();
+        });
+    </script>
+</body>
+</html>
