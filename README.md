@@ -14,4 +14,5 @@ concept behind
 ## rademacher-calculator.html
 
 What is Rademacher complexity? Play around with a few different degree
-polynomials and some random data and find out.
+polynomials and some random data and find out in this
+[Rademacher complexity game](rademacher-calculator.html).
