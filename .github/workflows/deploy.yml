@@ -30,4 +30,4 @@ jobs:
 
       - name: Deploy HTML files
         run: |
-          scp -i ~/.ssh/id_ed25519 *.html merah.cassia.ifost.org.au:/var/www/vhosts/learning-theory.arithmetic.guru/htdocs/
+          scp -i ~/.ssh/id_ed25519 *.html numbertarget@merah.cassia.ifost.org.au:/var/www/vhosts/learning-theory.arithmetic.guru/htdocs/
