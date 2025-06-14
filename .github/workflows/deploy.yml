@@ -18,16 +18,11 @@ jobs:
       - name: Build index.html
         run: pandoc README.md -o index.html
 
-      - name: Setup SSH
-        env:
-          SSH_KEY: ${{ secrets.NUMBER_TARGET_SSH_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_ed25519
-          chmod 700 ~/.ssh
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan merah.cassia.ifost.org.au >> ~/.ssh/known_hosts
-
       - name: Deploy HTML files
-        run: |
-          scp -i ~/.ssh/id_ed25519 *.html numbertarget@merah.cassia.ifost.org.au:/var/www/vhosts/learning-theory.arithmetic.guru/htdocs/
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: merah.cassia.ifost.org.au
+          username: numbertarget
+          key: ${{ secrets.NUMBER_TARGET_SSH_KEY }}
+          source: "*.html"
+          target: /var/www/vhosts/learning-theory.arithmetic.guru/htdocs/
