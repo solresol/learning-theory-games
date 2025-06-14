@@ -1,7 +1,7 @@
 # TODO: Learning Theory Games
 
 ## Infrastructure
-- Fix autodeployment from GitHub
+- ~~Fix autodeployment from GitHub~~
 
 ## Core Learning Theory Concepts
 - Overfitting Explorer: Interactive polynomial fitting with adjustable degree and noise, real-time bias-variance decomposition
