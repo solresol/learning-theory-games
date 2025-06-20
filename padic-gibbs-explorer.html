@@ -232,8 +232,7 @@
         <div class="controls">
             <div class="control-group">
                 <label for="prime">Prime p:</label>
-                <input type="range" id="prime" min="2" max="7" value="2" step="1">
-                <span class="value-display" id="prime-value">2</span>
+                <input type="number" id="prime" min="2" value="2" step="1">
             </div>
             
             <div class="control-group">
@@ -244,8 +243,7 @@
             
             <div class="control-group">
                 <label for="iterations">Iterations:</label>
-                <input type="range" id="iterations" min="50" max="500" value="200" step="50">
-                <span class="value-display" id="iterations-value">200</span>
+                <input type="number" id="iterations" min="50" value="200" step="50">
             </div>
             
             <div class="control-group">
@@ -288,6 +286,7 @@
             
             <div class="result-panel">
                 <h3>Loss Convergence</h3>
+                <div id="trend-info" style="margin-bottom: 10px; font-weight: 600; color: #e74c3c;"></div>
                 <div class="chart-container">
                     <canvas id="lossChart"></canvas>
                 </div>
@@ -301,6 +300,29 @@
     </div>
 
     <script>
+        // Prime checking function
+        function isPrime(n) {
+            if (n < 2) return false;
+            if (n === 2) return true;
+            if (n % 2 === 0) return false;
+            for (let i = 3; i * i <= n; i += 2) {
+                if (n % i === 0) return false;
+            }
+            return true;
+        }
+
+        function validatePrime() {
+            const primeInput = document.getElementById('prime');
+            const p = parseInt(primeInput.value);
+            
+            if (!isPrime(p)) {
+                alert(`${p} is not a prime number. Please enter a prime number.`);
+                primeInput.value = 2; // Reset to default prime
+                return false;
+            }
+            return true;
+        }
+
         // P-adic mathematical functions
         function vp(n, p) {
             if (n === 0) return 60; // "infinity"
@@ -400,6 +422,8 @@
         let lossChart = null;
 
         async function runRegression() {
+            if (!validatePrime()) return;
+            
             const p = parseInt(document.getElementById('prime').value);
             const beta = parseFloat(document.getElementById('beta').value);
             const iterations = parseInt(document.getElementById('iterations').value);
@@ -457,12 +481,33 @@
             }
         }
 
+        function calculateTrendLine(lossHistory) {
+            const n = lossHistory.length;
+            const x = Array.from({length: n}, (_, i) => i);
+            const y = lossHistory.map(loss => Math.log(loss)); // Use log for exponential trend
+            
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = y.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+            const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            const trendLine = x.map(xi => Math.exp(intercept + slope * xi));
+            const lossPerIteration = Math.exp(slope) - 1; // Convert back from log space
+            
+            return { trendLine, lossPerIteration };
+        }
+
         function updateChart(lossHistory) {
             const ctx = document.getElementById('lossChart').getContext('2d');
             
             if (lossChart) {
                 lossChart.destroy();
             }
+            
+            const { trendLine, lossPerIteration } = calculateTrendLine(lossHistory);
             
             lossChart = new Chart(ctx, {
                 type: 'line',
@@ -476,6 +521,15 @@
                         borderWidth: 2,
                         fill: true,
                         tension: 0.1
+                    }, {
+                        label: 'Trend Line',
+                        data: trendLine,
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        fill: false,
+                        borderDash: [5, 5],
+                        pointRadius: 0
                     }]
                 },
                 options: {
@@ -501,6 +555,14 @@
                     }
                 }
             });
+            
+            // Update trend information
+            const trendInfo = document.getElementById('trend-info');
+            if (trendInfo) {
+                const percentChange = (lossPerIteration * 100).toFixed(2);
+                const direction = lossPerIteration < 0 ? 'decreasing' : 'increasing';
+                trendInfo.innerHTML = `Trend: Loss ${direction} by ${Math.abs(percentChange)}% per iteration`;
+            }
         }
 
         function clearResults() {
@@ -524,19 +586,16 @@
 0,5,10`;
         }
 
-        // Update value displays
+        // Update value displays for sliders only
         function updateValueDisplays() {
-            document.getElementById('prime-value').textContent = document.getElementById('prime').value;
             document.getElementById('beta-value').textContent = document.getElementById('beta').value;
-            document.getElementById('iterations-value').textContent = document.getElementById('iterations').value;
             document.getElementById('candidates-value').textContent = document.getElementById('candidates').value;
             document.getElementById('digits-value').textContent = document.getElementById('digits').value;
         }
 
         // Add event listeners
-        document.getElementById('prime').addEventListener('input', updateValueDisplays);
+        document.getElementById('prime').addEventListener('blur', validatePrime);
         document.getElementById('beta').addEventListener('input', updateValueDisplays);
-        document.getElementById('iterations').addEventListener('input', updateValueDisplays);
         document.getElementById('candidates').addEventListener('input', updateValueDisplays);
         document.getElementById('digits').addEventListener('input', updateValueDisplays);
 

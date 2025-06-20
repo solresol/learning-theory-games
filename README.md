@@ -28,3 +28,12 @@ What is Rademacher complexity? Play around with different degree polynomials and
 Explore the fundamental tradeoff between bias and variance through interactive polynomial fitting. Adjust model complexity, data size, and noise levels to see overfitting happen in real-time. Includes bias-variance decomposition analysis and learning curves to understand when models generalize well vs. when they memorize training data.
 
 **Key Concepts:** Overfitting, underfitting, bias-variance tradeoff, model complexity, generalization
+
+## P-adic Gibbs Regression Explorer
+
+**File:** [padic-gibbs-explorer.html](padic-gibbs-explorer.html)
+
+Discover how regression works in non-Archimedean settings through interactive p-adic linear regression. Unlike traditional regression that minimizes Euclidean distance, p-adic regression uses the p-adic norm where "closeness" has a completely different meaning. Watch as the Gibbs sampler explores parameter space using Boltzmann acceptance probabilities, with real-time convergence analysis and trend visualization. This is the implementation from https://arxiv.org/abs/2503.23488 *p-Adic Polynomial Regression as Alternative to Neural Network for Approximating p-Adic Functions of Many Variables* by Alexander Zubrev.
+
+**Key Concepts:** p-adic numbers, non-Archimedean analysis, Gibbs sampling, Boltzmann distribution, alternative geometries
+
