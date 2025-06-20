@@ -16,7 +16,10 @@ jobs:
           sudo apt-get install -y pandoc
 
       - name: Build index.html
-        run: pandoc README.md -o index.html
+        run: |
+          # Create a modified README that skips the header content for prettier formatting
+          sed -n '8,$p' README.md > README_body.md
+          pandoc README_body.md -o index.html --template=index-template.html --css=index-style.css --metadata title="Learning Theory Games"
 
       - name: Deploy HTML files
         uses: appleboy/scp-action@v0.1.4
@@ -24,5 +27,5 @@ jobs:
           host: merah.cassia.ifost.org.au
           username: numbertarget
           key: ${{ secrets.NUMBER_TARGET_SSH_KEY }}
-          source: "*.html"
+          source: "*.html,*.css"
           target: /var/www/vhosts/learning-theory.arithmetic.guru/htdocs/
