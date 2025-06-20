@@ -445,6 +445,7 @@
                 log.innerHTML = `★ Starting loss: ${lossNow.toExponential(3)}, w = [${w.join(', ')}]\n`;
                 
                 const lossHistory = [lossNow];
+                const coefficientHistory = [w.slice()]; // Store copy of initial coefficients
                 
                 for (let it = 1; it <= iterations; it++) {
                     const result = gibbsStep(w, lossNow, A, y, p, beta, digits, candidates);
@@ -458,9 +459,10 @@
                     
                     lossNow = lossNew;
                     lossHistory.push(lossNow);
+                    coefficientHistory.push(w.slice()); // Store copy of current coefficients
                     
                     if (it % 10 === 0) {
-                        updateChart(lossHistory);
+                        updateChart(lossHistory, coefficientHistory);
                         await new Promise(resolve => setTimeout(resolve, 10)); // Allow UI update
                     }
                 }
@@ -474,7 +476,7 @@
                     <div>${lossNow.toExponential(6)}</div>
                 `;
                 
-                updateChart(lossHistory);
+                updateChart(lossHistory, coefficientHistory);
                 
             } catch (error) {
                 document.getElementById('log').innerHTML += `❌ Error: ${error.message}\n`;
@@ -500,7 +502,7 @@
             return { trendLine, lossPerIteration };
         }
 
-        function updateChart(lossHistory) {
+        function updateChart(lossHistory, coefficientHistory) {
             const ctx = document.getElementById('lossChart').getContext('2d');
             
             if (lossChart) {
@@ -515,7 +517,11 @@
                     labels: lossHistory.map((_, i) => i),
                     datasets: [{
                         label: 'P-adic Loss',
-                        data: lossHistory,
+                        data: lossHistory.map((loss, i) => ({
+                            x: i,
+                            y: loss,
+                            coefficients: coefficientHistory[i]
+                        })),
                         borderColor: '#3498db',
                         backgroundColor: 'rgba(52, 152, 219, 0.1)',
                         borderWidth: 2,
@@ -538,6 +544,30 @@
                     plugins: {
                         legend: {
                             labels: { color: 'white' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return `Iteration ${context[0].parsed.x}`;
+                                },
+                                label: function(context) {
+                                    if (context.datasetIndex === 0) { // Loss dataset
+                                        const coeffs = context.raw.coefficients;
+                                        const coeffStr = coeffs.map((c, i) => `w[${i}]=${c}`).join(', ');
+                                        return [
+                                            `Loss: ${context.parsed.y.toExponential(3)}`,
+                                            `Coefficients: [${coeffStr}]`
+                                        ];
+                                    } else {
+                                        return `Trend: ${context.parsed.y.toExponential(3)}`;
+                                    }
+                                }
+                            },
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            borderColor: '#3498db',
+                            borderWidth: 1
                         }
                     },
                     scales: {
