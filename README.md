@@ -37,3 +37,11 @@ Discover how regression works in non-Archimedean settings through interactive p-
 
 **Key Concepts:** p-adic numbers, non-Archimedean analysis, Gibbs sampling, Boltzmann distribution, alternative geometries
 
+## CN2 Algorithm Learning Game
+
+**File:** [cn2_learning_game.html](cn2_learning_game.html)
+
+Play as the CN2 rule learner to craft if-then rules using beam search. Balance coverage and precision to build a classifier that predicts when to play tennis.
+
+**Key Concepts:** rule-based learning, beam search, coverage vs precision, CN2 algorithm
+
