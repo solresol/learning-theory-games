@@ -45,3 +45,14 @@ Play as the CN2 rule learner to craft if-then rules using beam search. Balance c
 
 **Key Concepts:** rule-based learning, beam search, coverage vs precision, CN2 algorithm
 
+## Related Projects
+
+Explore more interactive mathematical and computational tools:
+
+- **[P-adic Theory Games](https://padic.arithmetic.guru)**: Interactive games teaching p-adic number theory, including Hensel's Lemma visualization
+- **[Genetic Pedigree Analyzer](https://genes.arithmetic.guru)**: Calculate genetic inheritance probabilities through interactive pedigree diagrams
+- **[k-bonacci Calculator](https://k-bonacci.arithmetic.guru)**: Explore generalized Fibonacci sequences where each term is the sum of the previous k terms
+- **[Exponential Growth Calculator](https://exponentials.arithmetic.guru)**: Visualize and explore exponential growth patterns
+- **[Bead Sort Simulator](https://bead-sort.arithmetic.guru)**: Watch the elegant physics-based bead sort algorithm in action
+- **[Aphid Population Explosion](https://aphids.arithmetic.guru)**: Simulate population dynamics and exponential growth with aphid colonies
+
