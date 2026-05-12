@@ -45,6 +45,14 @@ Play as the CN2 rule learner to craft if-then rules using beam search. Balance c
 
 **Key Concepts:** rule-based learning, beam search, coverage vs precision, CN2 algorithm
 
+## Network Analysis Playground
+
+**File:** [network-analysis-playground.html](network-analysis-playground.html)
+
+Explore Week 11 network analysis ideas through five small canvas activities: force-directed layouts, centrality measures, community detection, bipartite projection, and resilience under node removal. The activities use small classroom-sized graphs so students can connect each visual change to a specific graph concept.
+
+**Key Concepts:** network analysis, spring layouts, centrality, communities, bipartite projection, network resilience
+
 ## Related Projects
 
 Explore more interactive mathematical and computational tools:
@@ -55,4 +63,3 @@ Explore more interactive mathematical and computational tools:
 - **[Exponential Growth Calculator](https://exponentials.arithmetic.guru)**: Visualize and explore exponential growth patterns
 - **[Bead Sort Simulator](https://bead-sort.arithmetic.guru)**: Watch the elegant physics-based bead sort algorithm in action
 - **[Aphid Population Explosion](https://aphids.arithmetic.guru)**: Simulate population dynamics and exponential growth with aphid colonies
-

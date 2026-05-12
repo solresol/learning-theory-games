@@ -22,6 +22,9 @@
 - Multi-Armed Bandits Casino: Slot machines comparing ε-greedy, UCB, Thompson sampling
 - Ensemble Methods Battle: Side-by-side bagging vs boosting comparison
 
+## Course Network Analysis
+- ~~Network Analysis Playground: force-directed layout, centrality, communities, bipartite projection, and resilience activities for COMP2200 Week 11~~
+
 ## Theoretical Foundations
 - No Free Lunch Theorem Demo: Multiple datasets where different algorithms excel
 - Online Learning Regret Minimization: Sequential decision making with regret visualization
