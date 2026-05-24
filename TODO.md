@@ -21,6 +21,7 @@
 - Active Learning Game: Budget-constrained labeling with different sampling strategies
 - Multi-Armed Bandits Casino: Slot machines comparing ε-greedy, UCB, Thompson sampling
 - Ensemble Methods Battle: Side-by-side bagging vs boosting comparison
+- ~~P3 Recommendation Engine: animated MovieLens bipartite graph with three-hop random-walk recommendations~~
 
 ## Course Network Analysis
 - ~~Network Analysis Playground: force-directed layout, centrality, communities, bipartite projection, and resilience activities for COMP2200 Week 11~~

@@ -53,6 +53,14 @@ Explore Week 11 network analysis ideas through five small canvas activities: for
 
 **Key Concepts:** network analysis, spring layouts, centrality, communities, bipartite projection, network resilience
 
+## P3 Recommendation Engine
+
+**File:** [p3-recommendation-engine.html](p3-recommendation-engine.html)
+
+Teach path-based collaborative filtering with an animated user-movie graph built from the MovieLens `ml-latest-small` dataset. Add movies you like, watch nearby MovieLens users attach to the graph, then run repeated P3 random walks from you to a movie, to a user, and back to a recommended movie. Recommendation counts update live while each three-hop path is highlighted on the canvas.
+
+**Key Concepts:** recommender systems, P3 random walks, collaborative filtering, bipartite graphs, MovieLens
+
 ## Related Projects
 
 Explore more interactive mathematical and computational tools:
